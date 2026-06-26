@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+*.sqlite3
+
+# Node
+node_modules/
+thesis-front/dist/
+
+# Git / IDE
+.git
+.idea/
+.vscode/
+
+# Secrets
+.env
+.env.local
+
+# Docs (not needed in image)
+docs/
+docs_extracted/
+
+# OS
+.DS_Store
+Thumbs.db

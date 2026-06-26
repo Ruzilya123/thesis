@@ -1,0 +1,100 @@
+x-backend-service: &backend-service
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .env
+  environment:
+    DB_ENGINE: postgresql
+    POSTGRES_HOST: db
+    DB_HOST: db
+  networks:
+    - doubleb-network
+
+x-app-depends: &app-depends
+  db:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+
+services:
+  api:
+    <<: *backend-service
+    container_name: doubleb-api
+    restart: unless-stopped
+    depends_on: *app-depends
+    command: ["gunicorn", "thesis_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2"]
+    ports:
+      - "${API_PORT:-8000}:8000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000/api}
+    container_name: doubleb-frontend
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      - doubleb-network
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+
+  migrate:
+    <<: *backend-service
+    container_name: doubleb-migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "python manage.py migrate && python manage.py seed_data"]
+    restart: "no"
+
+  db:
+    image: postgres:17-alpine
+    container_name: doubleb-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - doubleb-network
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: doubleb-pgadmin
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@doubleb.local}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - doubleb-network
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  doubleb-network:
+    driver: bridge

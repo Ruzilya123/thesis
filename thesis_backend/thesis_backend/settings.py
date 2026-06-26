@@ -58,15 +58,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'thesis_backend.wsgi.application'
 
-if os.getenv('DB_ENGINE') == 'postgresql':
+if os.getenv('DB_ENGINE') == 'postgresql' or os.getenv('POSTGRES_HOST'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'doubleb_shop'),
-            'USER': os.getenv('DB_USER', 'doubleb'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'doubleb'),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+            'NAME': os.getenv('DB_NAME') or os.getenv('POSTGRES_DB', 'doubleb_shop'),
+            'USER': os.getenv('DB_USER') or os.getenv('POSTGRES_USER', 'doubleb'),
+            'PASSWORD': os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD', 'doubleb'),
+            'HOST': os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT', '5432'),
         }
     }
 else:
@@ -109,8 +109,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-CORS_ALLOWED_ORIGINS = os.getenv(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000',
-).split(',')
+_cors = os.getenv('CORS_ALLOWED_ORIGINS') or os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000')
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors.split(',') if o.strip()]
 CORS_ALLOW_CREDENTIALS = True
