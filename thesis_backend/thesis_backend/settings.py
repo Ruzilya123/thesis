@@ -62,11 +62,11 @@ if os.getenv('DB_ENGINE') == 'postgresql' or os.getenv('POSTGRES_HOST'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME') or os.getenv('POSTGRES_DB', 'doubleb_shop'),
-            'USER': os.getenv('DB_USER') or os.getenv('POSTGRES_USER', 'doubleb'),
-            'PASSWORD': os.getenv('DB_PASSWORD') or os.getenv('POSTGRES_PASSWORD', 'doubleb'),
-            'HOST': os.getenv('DB_HOST') or os.getenv('POSTGRES_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT') or os.getenv('POSTGRES_PORT', '5432'),
+            'NAME': os.getenv('POSTGRES_DB') or os.getenv('DB_NAME', 'doubleb_shop'),
+            'USER': os.getenv('POSTGRES_USER') or os.getenv('DB_USER', 'doubleb'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', 'doubleb'),
+            'HOST': os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'),
         }
     }
 else:
