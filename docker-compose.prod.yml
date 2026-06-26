@@ -23,6 +23,11 @@ services:
     container_name: doubleb-api
     restart: unless-stopped
     depends_on: *app-depends
+    environment:
+      <<: *app-environment
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: ["gunicorn", "thesis_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--access-logfile", "-"]
     expose:
       - "8000"
@@ -48,6 +53,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      <<: *app-environment
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: ["sh", "-c", "python manage.py migrate && python manage.py seed_data"]
     restart: "no"
 
