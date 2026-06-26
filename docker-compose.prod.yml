@@ -23,7 +23,7 @@ services:
     container_name: doubleb-api
     restart: unless-stopped
     depends_on: *app-depends
-    command: ["gunicorn", "thesis_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--proxy-headers", "--forwarded-allow-ips=*"]
+    command: ["gunicorn", "thesis_backend.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--access-logfile", "-"]
     expose:
       - "8000"
 
