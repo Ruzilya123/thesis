@@ -55,6 +55,8 @@ prod-up: ## Поднять prod (нужна сеть web-network)
 	@echo "$(GREEN)Запуск prod...$(NC)"
 	docker network inspect web-network >/dev/null 2>&1 || docker network create web-network
 	docker compose -f docker-compose.prod.yml up -d --build
+	@sleep 8
+	@docker compose -f docker-compose.prod.yml ps
 
 prod-down:
 	docker compose -f docker-compose.prod.yml down

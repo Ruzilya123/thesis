@@ -8,6 +8,14 @@ x-backend-service: &backend-service
     DB_ENGINE: postgresql
     POSTGRES_HOST: db
     DB_HOST: db
+    POSTGRES_DB: ${POSTGRES_DB:-doubleb_db}
+    POSTGRES_USER: ${POSTGRES_USER:-doubleb}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-doubleb_secure_password}
+    POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+    DB_NAME: ${POSTGRES_DB:-doubleb_db}
+    DB_USER: ${POSTGRES_USER:-doubleb}
+    DB_PASSWORD: ${POSTGRES_PASSWORD:-doubleb_secure_password}
+    DB_PORT: ${POSTGRES_PORT:-5432}
   networks:
     - web-network
 
