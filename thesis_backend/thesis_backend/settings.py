@@ -58,6 +58,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'thesis_backend.wsgi.application'
 
+print(os.getenv('POSTGRES_DB') or os.getenv('DB_NAME', 'doubleb_shop'))
+print(os.getenv('POSTGRES_USER') or os.getenv('DB_USER', 'doubleb'))
+print(os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', 'doubleb'))
+print(os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'))
+print(os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'))
+
 if os.getenv('DB_ENGINE') == 'postgresql' or os.getenv('POSTGRES_HOST'):
     DATABASES = {
         'default': {
