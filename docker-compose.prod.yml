@@ -6,8 +6,8 @@ x-backend-service: &backend-service
     - .env
   environment: &app-environment
     DB_ENGINE: postgresql
-    POSTGRES_HOST: db
-    DB_HOST: db
+    POSTGRES_HOST: doubleb-db
+    DB_HOST: doubleb-db
     POSTGRES_DB: ${POSTGRES_DB:-doubleb_db}
     POSTGRES_USER: ${POSTGRES_USER:-doubleb}
     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-doubleb_secure_password}
