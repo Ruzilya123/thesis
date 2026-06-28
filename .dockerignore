@@ -15,7 +15,6 @@ thesis-front/dist/
 .vscode/
 
 # Secrets
-.env
 .env.local
 
 # Docs (not needed in image)
