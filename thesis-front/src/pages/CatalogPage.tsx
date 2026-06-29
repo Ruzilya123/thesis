@@ -1,18 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { api } from '../api/client'
 import ProductCard from '../components/ProductCard'
+import { CATEGORY_TABS } from '../utils/product'
 import type { Category, FilterOption, Product } from '../types'
 
 export default function CatalogPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [roasts, setRoasts] = useState<FilterOption[]>([])
   const [grinds, setGrinds] = useState<FilterOption[]>([])
-  const [category, setCategory] = useState('')
-  const [roast, setRoast] = useState('')
-  const [grind, setGrind] = useState('')
-  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+
+  const activeTab = searchParams.get('tab') || 'beans'
+  const roastFilter = searchParams.get('roast') || ''
+  const grindFilter = searchParams.get('grind') || ''
+  const search = searchParams.get('search') || ''
+
+  const categoryIds = useMemo(() => {
+    const tab = CATEGORY_TABS.find((t) => t.key === activeTab)
+    if (!tab) return []
+    return categories.filter((c) => tab.categories.includes(c.name)).map((c) => c.id)
+  }, [activeTab, categories])
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getRoasts(), api.getGrinds()]).then(
@@ -25,79 +35,95 @@ export default function CatalogPage() {
   }, [])
 
   useEffect(() => {
+    if (categories.length === 0) return
     const params: Record<string, string> = {}
-    if (category) params.category = category
-    if (roast) params.roast = roast
-    if (grind) params.grind = grind
+    if (roastFilter) params.roast = roastFilter
+    if (grindFilter) params.grind = grindFilter
     if (search) params.search = search
+
     setLoading(true)
-    api
-      .getProducts(params)
-      .then((data) => setProducts(data.results || (data as unknown as Product[])))
+    const requests = categoryIds.length
+      ? categoryIds.map((id) => api.getProducts({ ...params, category: String(id) }))
+      : [api.getProducts(params)]
+
+    Promise.all(requests)
+      .then((responses) => {
+        const merged = responses.flatMap((data) => data.results || [])
+        const unique = Array.from(new Map(merged.map((p) => [p.id, p])).values())
+        setProducts(unique)
+      })
       .finally(() => setLoading(false))
-  }, [category, roast, grind, search])
+  }, [categoryIds, roastFilter, grindFilter, search, categories.length])
+
+  const setParam = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams)
+    if (value) params.set(key, value)
+    else params.delete(key)
+    setSearchParams(params)
+  }
+
+  const toggleFilter = (key: 'roast' | 'grind', id: string) => {
+    const current = searchParams.get(key) || ''
+    setParam(key, current === id ? '' : id)
+  }
+
+  const setTab = (key: string) => setParam('tab', key)
 
   return (
     <div className="container catalog">
-      <section className="hero">
-        <h1>Интернет-магазин Double B</h1>
-        <p>Спешелти-кофе с собственной обжарки — зерно, молотый, дрипы и аксессуары</p>
-        <input
-          type="search"
-          className="search-input"
-          placeholder="Поиск по каталогу..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </section>
+      <div className="category-tabs">
+        {CATEGORY_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            className={`category-tab${activeTab === tab.key ? ' category-tab--active' : ''}`}
+            onClick={() => setTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       <div className="catalog__layout">
         <aside className="filters">
           <h2>Фильтры</h2>
-          <label>
-            Категория
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
-              <option value="">Все</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Обжарка
-            <select value={roast} onChange={(e) => setRoast(e.target.value)}>
-              <option value="">Все</option>
-              {roasts.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Помол
-            <select value={grind} onChange={(e) => setGrind(e.target.value)}>
-              <option value="">Все</option>
-              {grinds.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="filter-group">
+            <h3>Обжарка</h3>
+            {roasts.map((r) => (
+              <label key={r.id} className="filter-check">
+                <input
+                  type="checkbox"
+                  checked={roastFilter === String(r.id)}
+                  onChange={() => toggleFilter('roast', String(r.id))}
+                />
+                {r.name}
+              </label>
+            ))}
+          </div>
+          <div className="filter-group">
+            <h3>Помол</h3>
+            {grinds.map((g) => (
+              <label key={g.id} className="filter-check">
+                <input
+                  type="checkbox"
+                  checked={grindFilter === String(g.id)}
+                  onChange={() => toggleFilter('grind', String(g.id))}
+                />
+                {g.name}
+              </label>
+            ))}
+          </div>
           <button
             type="button"
             className="btn btn--ghost btn--full"
             onClick={() => {
-              setCategory('')
-              setRoast('')
-              setGrind('')
-              setSearch('')
+              const params = new URLSearchParams()
+              if (activeTab) params.set('tab', activeTab)
+              if (search) params.set('search', search)
+              setSearchParams(params)
             }}
           >
-            Сбросить
+            Сбросить фильтры
           </button>
         </aside>
 

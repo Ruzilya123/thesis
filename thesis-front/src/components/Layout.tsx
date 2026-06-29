@@ -1,37 +1,51 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 
 export default function Layout() {
   const { isAuthenticated, user, logout } = useAuth()
   const { totalCount } = useCart()
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const searchValue = searchParams.get('search') || ''
+
+  const onSearchChange = (value: string) => {
+    const params = new URLSearchParams(searchParams)
+    if (value) params.set('search', value)
+    else params.delete('search')
+    navigate({ pathname: '/', search: params.toString() ? `?${params}` : '' })
+  }
 
   return (
     <div className="app">
       <header className="header">
         <div className="container header__inner">
           <Link to="/" className="logo">
-            <span className="logo__mark">DB</span>
-            <span className="logo__text">Double B</span>
+            Double B
           </Link>
-          <nav className="nav">
-            <Link to="/">Каталог</Link>
-            {isAuthenticated && <Link to="/profile">Личный кабинет</Link>}
-            {user?.username === 'admin' && <Link to="/admin">Админ</Link>}
-          </nav>
+          <input
+            type="search"
+            className="header__search"
+            placeholder="Поиск товаров..."
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
           <div className="header__actions">
             {isAuthenticated ? (
-              <button type="button" className="btn btn--ghost" onClick={logout}>
-                Выйти
-              </button>
+              <>
+                <Link to="/profile" className="header__login">Кабинет</Link>
+                {user?.username === 'admin' && (
+                  <Link to="/admin" className="header__login">Админ</Link>
+                )}
+                <button type="button" className="btn btn--header btn--sm" onClick={logout}>
+                  Выйти
+                </button>
+              </>
             ) : (
-              <Link to="/login" className="btn btn--ghost">
-                Войти
-              </Link>
+              <Link to="/login" className="header__login">Вход</Link>
             )}
             <Link to="/cart" className="cart-btn">
-              Корзина
-              {totalCount > 0 && <span className="cart-btn__badge">{totalCount}</span>}
+              Корзина{totalCount > 0 ? ` (${totalCount})` : ''}
             </Link>
           </div>
         </div>

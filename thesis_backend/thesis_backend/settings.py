@@ -5,15 +5,30 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*args, **kwargs):
+        return False
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+
+
+def _get_env_list(name, default):
+    value = os.getenv(name)
+    if value:
+        return [item.strip() for item in value.split(',') if item.strip()]
+    return default
+
+
+ALLOWED_HOSTS = _get_env_list(
+    'ALLOWED_HOSTS',
+    ['localhost', '127.0.0.1', '0.0.0.0', '::1', 'backend', 'api.doubleb-shop.ru'],
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,7 +79,7 @@ print(os.getenv('POSTGRES_PASSWORD') or os.getenv('DB_PASSWORD', 'doubleb'))
 print(os.getenv('POSTGRES_HOST') or os.getenv('DB_HOST', 'localhost'))
 print(os.getenv('POSTGRES_PORT') or os.getenv('DB_PORT', '5432'))
 
-if os.getenv('DB_ENGINE') == 'postgresql' or os.getenv('POSTGRES_HOST'):
+if os.getenv('DB_ENGINE') == 'postgresql' or (os.getenv('POSTGRES_HOST') or '').strip():
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',

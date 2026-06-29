@@ -99,10 +99,11 @@ def create_order(user, items_data, delivery_method, recipient_name, recipient_ph
         if product.stock < qty:
             raise ValueError(f'Недостаточно товара «{product.name}» на складе')
         products[product.id] = product
+        line_price = Decimal(str(row.get('price', product.price)))
         order_items.append({
             'product': product,
             'quantity': qty,
-            'price': product.price,
+            'price': line_price,
         })
 
     promo = get_active_promo(promo_code_str)

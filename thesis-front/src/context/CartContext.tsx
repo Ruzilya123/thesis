@@ -1,11 +1,16 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { CartItem, Product } from '../types'
 
+interface AddItemOptions {
+  name?: string
+  price?: string
+}
+
 interface CartContextType {
   items: CartItem[]
-  addItem: (product: Product, quantity?: number) => void
-  removeItem: (productId: number) => void
-  updateQuantity: (productId: number, quantity: number) => void
+  addItem: (product: Product, quantity?: number, options?: AddItemOptions) => void
+  removeItem: (productId: number, name?: string, price?: string) => void
+  updateQuantity: (productId: number, quantity: number, name?: string, price?: string) => void
   clearCart: () => void
   totalCount: number
   totalPrice: number
@@ -27,21 +32,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
   }, [items])
 
-  const addItem = (product: Product, quantity = 1) => {
+  const addItem = (product: Product, quantity = 1, options?: AddItemOptions) => {
+    const lineName = options?.name || product.name
+    const linePrice = options?.price || product.price
+    const lineKey = `${product.id}:${lineName}:${linePrice}`
+
     setItems((prev) => {
-      const existing = prev.find((i) => i.product_id === product.id)
+      const existing = prev.find(
+        (i) => `${i.product_id}:${i.name}:${i.price}` === lineKey,
+      )
       if (existing) {
         const newQty = Math.min(existing.quantity + quantity, product.stock)
         return prev.map((i) =>
-          i.product_id === product.id ? { ...i, quantity: newQty } : i,
+          `${i.product_id}:${i.name}:${i.price}` === lineKey ? { ...i, quantity: newQty } : i,
         )
       }
       return [
         ...prev,
         {
           product_id: product.id,
-          name: product.name,
-          price: product.price,
+          name: lineName,
+          price: linePrice,
           quantity: Math.min(quantity, product.stock),
           image_url: product.image_url,
           stock: product.stock,
@@ -50,21 +61,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const removeItem = (productId: number) => {
-    setItems((prev) => prev.filter((i) => i.product_id !== productId))
+  const lineKey = (item: CartItem) => `${item.product_id}:${item.name}:${item.price}`
+
+  const removeItem = (productId: number, name?: string, price?: string) => {
+    setItems((prev) =>
+      prev.filter((i) => {
+        if (name && price) return lineKey(i) !== `${productId}:${name}:${price}`
+        return i.product_id !== productId
+      }),
+    )
   }
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: number, quantity: number, name?: string, price?: string) => {
+    const key = name && price ? `${productId}:${name}:${price}` : String(productId)
     if (quantity <= 0) {
-      removeItem(productId)
+      removeItem(productId, name, price)
       return
     }
     setItems((prev) =>
-      prev.map((i) =>
-        i.product_id === productId
-          ? { ...i, quantity: Math.min(quantity, i.stock) }
-          : i,
-      ),
+      prev.map((i) => {
+        const match = name && price ? lineKey(i) === key : i.product_id === productId
+        return match ? { ...i, quantity: Math.min(quantity, i.stock) } : i
+      }),
     )
   }
 

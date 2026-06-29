@@ -13,31 +13,44 @@ from shop.models import (
     RoastLevel,
 )
 
+IMG = '/images/products'
 
 PRODUCTS = [
     {
-        'name': 'Эфиопия Сидамо',
+        'name': 'Эфиопия Иргачеффе',
         'category': 'Зерновой кофе',
         'roast': 'Светлая',
         'grind': 'В зёрнах',
         'origin': 'Эфиопия',
-        'flavor': 'Цитрус, жасмин, чай',
+        'flavor': 'Жасмин, цитрус, мёд',
         'price': '890',
         'stock': 45,
         'weight': 250,
-        'image': 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400',
+        'image': f'{IMG}/ethiopia.svg',
     },
     {
-        'name': 'Колумбия Супремо',
+        'name': 'Кения Ньери',
+        'category': 'Зерновой кофе',
+        'roast': 'Светлая',
+        'grind': 'В зёрнах',
+        'origin': 'Кения',
+        'flavor': 'Смородина, винные ноты',
+        'price': '940',
+        'stock': 38,
+        'weight': 250,
+        'image': f'{IMG}/kenya.svg',
+    },
+    {
+        'name': 'Колумбия Уила',
         'category': 'Зерновой кофе',
         'roast': 'Средняя',
         'grind': 'В зёрнах',
         'origin': 'Колумбия',
         'flavor': 'Карамель, орех, шоколад',
-        'price': '950',
-        'stock': 38,
+        'price': '820',
+        'stock': 40,
         'weight': 250,
-        'image': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400',
+        'image': f'{IMG}/colombia.svg',
     },
     {
         'name': 'Бразилия Сантос',
@@ -46,22 +59,34 @@ PRODUCTS = [
         'grind': 'В зёрнах',
         'origin': 'Бразилия',
         'flavor': 'Какао, орех, низкая кислотность',
-        'price': '780',
+        'price': '760',
         'stock': 52,
         'weight': 250,
-        'image': 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400',
+        'image': f'{IMG}/brazil.svg',
     },
     {
-        'name': 'Кения AA',
+        'name': 'Гватемала Антигуа',
         'category': 'Зерновой кофе',
         'roast': 'Средняя',
         'grind': 'В зёрнах',
-        'origin': 'Кения',
-        'flavor': 'Смородина, винные ноты',
-        'price': '1020',
+        'origin': 'Гватемала',
+        'flavor': 'Яблоко, мёд, цветы',
+        'price': '880',
+        'stock': 35,
+        'weight': 250,
+        'image': f'{IMG}/guatemala.svg',
+    },
+    {
+        'name': 'Перу Чанчамайо',
+        'category': 'Зерновой кофе',
+        'roast': 'Средняя',
+        'grind': 'В зёрнах',
+        'origin': 'Перу',
+        'flavor': 'Орех, какао, сливки',
+        'price': '800',
         'stock': 30,
         'weight': 250,
-        'image': 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400',
+        'image': f'{IMG}/peru.svg',
     },
     {
         'name': 'Эспрессо-смесь House Blend',
@@ -73,7 +98,7 @@ PRODUCTS = [
         'price': '820',
         'stock': 40,
         'weight': 250,
-        'image': 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400',
+        'image': f'{IMG}/house-blend.svg',
     },
     {
         'name': 'Фильтр Guatemala',
@@ -85,7 +110,7 @@ PRODUCTS = [
         'price': '870',
         'stock': 35,
         'weight': 250,
-        'image': 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400',
+        'image': f'{IMG}/guatemala-filter.svg',
     },
     {
         'name': 'Дрип Ethiopia',
@@ -97,7 +122,19 @@ PRODUCTS = [
         'price': '450',
         'stock': 80,
         'weight': 120,
-        'image': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400',
+        'image': f'{IMG}/drip-ethiopia.svg',
+    },
+    {
+        'name': 'Дрип-набор «Ассорти»',
+        'category': 'Дрип-пакеты',
+        'roast': 'Средняя',
+        'grind': 'Фильтр',
+        'origin': 'Смесь',
+        'flavor': '5 сортов в одном наборе',
+        'price': '650',
+        'stock': 50,
+        'weight': 300,
+        'image': f'{IMG}/drip-assorti.svg',
     },
     {
         'name': 'Капсулы Ristretto',
@@ -109,7 +146,7 @@ PRODUCTS = [
         'price': '590',
         'stock': 60,
         'weight': 50,
-        'image': 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400',
+        'image': f'{IMG}/capsules.svg',
     },
     {
         'name': 'Подарочный набор Barista',
@@ -121,7 +158,7 @@ PRODUCTS = [
         'price': '3200',
         'stock': 15,
         'weight': 750,
-        'image': 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400',
+        'image': f'{IMG}/gift-set.svg',
     },
     {
         'name': 'Пуровер V60',
@@ -133,7 +170,7 @@ PRODUCTS = [
         'price': '2100',
         'stock': 25,
         'weight': 350,
-        'image': 'https://images.unsplash.com/photo-1498804103079-a6351b050096?w=400',
+        'image': f'{IMG}/v60.svg',
     },
     {
         'name': 'Кофемолка ручная',
@@ -145,7 +182,7 @@ PRODUCTS = [
         'price': '4500',
         'stock': 12,
         'weight': 600,
-        'image': 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400',
+        'image': f'{IMG}/grinder.svg',
     },
     {
         'name': 'Футболка Double B',
@@ -157,7 +194,7 @@ PRODUCTS = [
         'price': '1900',
         'stock': 40,
         'weight': 200,
-        'image': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400',
+        'image': f'{IMG}/tshirt.svg',
     },
 ]
 
@@ -197,7 +234,7 @@ class Command(BaseCommand):
             name='Самовывоз из кофейни', defaults={'cost': Decimal('0'), 'estimated_days': 1}
         )
 
-        PromoCode.objects.get_or_create(
+        PromoCode.objects.update_or_create(
             code='DOUBLEB10',
             defaults={
                 'discount_type': PromoCode.DISCOUNT_PERCENT,
@@ -234,6 +271,8 @@ class Command(BaseCommand):
                 },
             )
 
+        Product.objects.exclude(name__in=[p['name'] for p in PRODUCTS]).update(is_active=False)
+
         if not User.objects.filter(username='admin').exists():
             admin = User.objects.create_superuser(
                 username='admin', email='admin@double-b.ru', password='admin123'
@@ -244,17 +283,29 @@ class Command(BaseCommand):
             )
             self.stdout.write(self.style.SUCCESS('Админ: admin / admin123'))
 
-        if not User.objects.filter(username='demo').exists():
-            demo = User.objects.create_user(
+        silver = LoyaltyLevel.objects.get(name='Серебро')
+        demo_user = User.objects.filter(username='demo').first()
+        if not demo_user:
+            demo_user = User.objects.create_user(
                 username='demo', email='demo@double-b.ru', password='demo123'
             )
             from shop.models import LoyaltyAccount, UserProfile
             UserProfile.objects.create(
-                user=demo, phone='+79001234567', full_name='Иван Петров', consent_personal_data=True
+                user=demo_user, phone='+79001234567', full_name='Иван Петров', consent_personal_data=True
             )
             LoyaltyAccount.objects.create(
-                user=demo, balance=Decimal('1500'), level=LoyaltyLevel.objects.get(name='Серебро')
+                user=demo_user, balance=Decimal('1500'), level=silver
             )
             self.stdout.write(self.style.SUCCESS('Демо-покупатель: demo / demo123 (1500 бонусов)'))
+        else:
+            from shop.models import LoyaltyAccount, UserProfile
+            UserProfile.objects.update_or_create(
+                user=demo_user,
+                defaults={'phone': '+79001234567', 'full_name': 'Иван Петров', 'consent_personal_data': True},
+            )
+            LoyaltyAccount.objects.update_or_create(
+                user=demo_user,
+                defaults={'balance': Decimal('1500'), 'level': silver},
+            )
 
         self.stdout.write(self.style.SUCCESS('Данные успешно загружены!'))

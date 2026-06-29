@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import { formatPrice } from '../utils/product'
 import type { DeliveryMethod, OrderCalculation } from '../types'
 
 export default function CheckoutPage() {
@@ -15,7 +16,8 @@ export default function CheckoutPage() {
   const [form, setForm] = useState({
     recipient_name: user?.full_name || '',
     recipient_phone: user?.phone || '',
-    address_text: '',
+    city: '',
+    street: '',
     payment_method: 'card',
   })
   const [promoCode, setPromoCode] = useState('')
@@ -37,6 +39,16 @@ export default function CheckoutPage() {
   }, [])
 
   useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        recipient_name: user.full_name || prev.recipient_name,
+        recipient_phone: user.phone || prev.recipient_phone,
+      }))
+    }
+  }, [user])
+
+  useEffect(() => {
     if (!deliveryId || items.length === 0) return
     api
       .calculateOrder({
@@ -52,11 +64,19 @@ export default function CheckoutPage() {
   const submit = async () => {
     setError('')
     setLoading(true)
+    const address_text = [form.city, form.street].filter(Boolean).join(', ')
     try {
       const order = await api.createOrder({
-        items: items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
+        items: items.map((i) => ({
+          product_id: i.product_id,
+          quantity: i.quantity,
+          price: i.price,
+        })),
         delivery_method_id: deliveryId,
-        ...form,
+        recipient_name: form.recipient_name,
+        recipient_phone: form.recipient_phone,
+        address_text,
+        payment_method: form.payment_method,
         promo_code: promoCode,
         use_bonuses: useBonuses,
       })
@@ -76,14 +96,16 @@ export default function CheckoutPage() {
     return null
   }
 
+  const itemsSubtotal = items.reduce((sum, i) => sum + parseFloat(i.price) * i.quantity, 0)
+
   return (
     <div className="container checkout-page">
-      <h1>Оформление заказа</h1>
+      <h1 className="page-title">Оформление заказа</h1>
       <div className="checkout-page__layout">
         <form className="card checkout-form" onSubmit={(e) => { e.preventDefault(); submit() }}>
-          <h2>Данные получателя</h2>
+          <h2>Получатель</h2>
           <label>
-            ФИО
+            Имя
             <input
               required
               value={form.recipient_name}
@@ -98,70 +120,90 @@ export default function CheckoutPage() {
               onChange={(e) => setForm({ ...form, recipient_phone: e.target.value })}
             />
           </label>
+
+          <h2>Адрес доставки</h2>
           <label>
-            Адрес доставки
+            Город
             <input
               required
-              placeholder="Город, улица, дом, квартира"
-              value={form.address_text}
-              onChange={(e) => setForm({ ...form, address_text: e.target.value })}
+              value={form.city}
+              onChange={(e) => setForm({ ...form, city: e.target.value })}
+            />
+          </label>
+          <label>
+            Улица, дом, квартира
+            <input
+              required
+              value={form.street}
+              onChange={(e) => setForm({ ...form, street: e.target.value })}
             />
           </label>
 
-          <h2>Доставка и оплата</h2>
-          <label>
-            Способ доставки
-            <select value={deliveryId} onChange={(e) => setDeliveryId(Number(e.target.value))}>
-              {deliveryMethods.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} — {parseFloat(m.cost).toLocaleString('ru-RU')} ₽ ({m.estimated_days} дн.)
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Способ оплаты
-            <select
-              value={form.payment_method}
-              onChange={(e) => setForm({ ...form, payment_method: e.target.value })}
-            >
-              <option value="card">Банковская карта (демо ЮKassa)</option>
-              <option value="sbp">СБП</option>
-            </select>
-          </label>
+          <h2>Способ доставки</h2>
+          <div className="radio-group">
+            {deliveryMethods.map((m) => (
+              <label key={m.id} className="radio-option">
+                <input
+                  type="radio"
+                  name="delivery"
+                  checked={deliveryId === m.id}
+                  onChange={() => setDeliveryId(m.id)}
+                />
+                {m.name} — {formatPrice(m.cost)} ₽ ({m.estimated_days} дн.)
+              </label>
+            ))}
+          </div>
+
+          <h2>Оплата</h2>
+          <div className="radio-group">
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="payment"
+                checked={form.payment_method === 'card'}
+                onChange={() => setForm({ ...form, payment_method: 'card' })}
+              />
+              Картой онлайн
+            </label>
+            <label className="radio-option">
+              <input
+                type="radio"
+                name="payment"
+                checked={form.payment_method === 'cash'}
+                onChange={() => setForm({ ...form, payment_method: 'cash' })}
+              />
+              При получении
+            </label>
+          </div>
 
           {error && <p className="error">{error}</p>}
           <button type="submit" className="btn btn--primary btn--full" disabled={loading}>
-            {loading ? 'Обработка...' : 'Оплатить заказ'}
+            {loading ? 'Обработка...' : 'Подтвердить и оплатить'}
           </button>
         </form>
 
         <aside className="card checkout-summary">
           <h2>Ваш заказ</h2>
-          {items.map((i) => (
-            <div key={i.product_id} className="summary-row">
-              <span>{i.name} × {i.quantity}</span>
-              <span>{(parseFloat(i.price) * i.quantity).toLocaleString('ru-RU')} ₽</span>
-            </div>
-          ))}
+          <div className="summary-row">
+            <span>Товары ({items.length})</span>
+            <span>{formatPrice(itemsSubtotal)} ₽</span>
+          </div>
           {calc && (
             <>
-              <div className="summary-row"><span>Подытог</span><span>{parseFloat(calc.subtotal).toLocaleString('ru-RU')} ₽</span></div>
-              {parseFloat(calc.discount) > 0 && (
+              {(parseFloat(calc.discount) > 0 || parseFloat(calc.bonus_used) > 0) && (
                 <div className="summary-row summary-row--discount">
-                  <span>Скидка</span><span>−{parseFloat(calc.discount).toLocaleString('ru-RU')} ₽</span>
+                  <span>Скидка и бонусы</span>
+                  <span>−{formatPrice(parseFloat(calc.discount) + parseFloat(calc.bonus_used))} ₽</span>
                 </div>
               )}
-              {parseFloat(calc.bonus_used) > 0 && (
-                <div className="summary-row summary-row--discount">
-                  <span>Бонусы</span><span>−{parseFloat(calc.bonus_used).toLocaleString('ru-RU')} ₽</span>
-                </div>
-              )}
-              <div className="summary-row"><span>Доставка</span><span>{parseFloat(calc.delivery_cost).toLocaleString('ru-RU')} ₽</span></div>
-              <div className="summary-row summary-row--total">
-                <span>Итого</span><span>{parseFloat(calc.total).toLocaleString('ru-RU')} ₽</span>
+              <div className="summary-row">
+                <span>Доставка</span>
+                <span>{formatPrice(calc.delivery_cost)} ₽</span>
               </div>
-              <p className="muted">Начислим бонусов: {parseFloat(calc.bonus_earned).toLocaleString('ru-RU')}</p>
+              <div className="summary-row summary-row--total">
+                <span>Итого</span>
+                <span className="summary-row__value">{formatPrice(calc.total)} ₽</span>
+              </div>
             </>
           )}
         </aside>
